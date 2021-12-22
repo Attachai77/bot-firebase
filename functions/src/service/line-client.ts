@@ -7,4 +7,5 @@ const config = {
 };
 
 const client = new line.Client(config);
+
 export default client;

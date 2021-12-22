@@ -7,10 +7,8 @@ import { AttendanceType } from '../models/attendances.model';
 import { Users } from '../repositories/users.repo';
 
 const RICH_MENU = {
-    CLOCK_IN: 'richmenu-dbcc188042484aef357ec3c97afddb85',
-    CLOCK_OUT: 'richmenu-d986640185729f29e9b4df0d706d6a1c'
-    // CLOCK_IN: 'richmenu-c0db67c9605479b378a2b57f4bdf7d0f',
-    // CLOCK_OUT: 'richmenu-593bf5e6f7e1308830e162221097fa51'
+    CLOCK_IN: 'richmenu-82df8e4e5034afbe6f3017ccbbc37921',
+    CLOCK_OUT: 'richmenu-b0134452040acd74bf21f04b904ae751'
 };
 
 const clockin = async (req: IPayloadEvent) => {

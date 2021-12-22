@@ -43,5 +43,6 @@ module.exports = {
     "import/no-unresolved": 0,
     "require-jsdoc": "off",
     "no-invalid-this": "off",
+    "camelcase": "off",
   },
 };

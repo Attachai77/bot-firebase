@@ -1,3 +1,4 @@
+import './bootstrap';
 import * as functions from 'firebase-functions';
 import * as request from 'request-promise';
 import * as express from 'express';
@@ -12,11 +13,10 @@ import broadcastPushAll from './domain/broadcast.domain';
 import handleMessage from './domain/handleMessage.domain';
 // import reply from './domain/reply.domain';
 import postBack from './domain/postBack.domain';
-
-import './bootstrap';
 import { Users } from './repositories/users.repo';
 import { Attendances } from './repositories/attendances.repo';
-import { LeaveRequests } from './repositories/leaveRequests.repo';
+// import { LeaveRequests } from './repositories/leaveRequests.repo';
+import { LeaveRequestDomain } from './domain/leaveRequest.domain';
 // import { AttendanceType } from './models/attendances.model';
 // import reply from './domain/reply.domain';
 // import { LeaveDuration, LeaveRequestType } from './models/leaveRequests.model';
@@ -117,22 +117,26 @@ app.get('/attendances', async (req, res) => {
     });
 });
 
-const leaveRepo = new LeaveRequests();
-app.post('/leave-request', async (req, res) => {
+const leaveRequestDomain = new LeaveRequestDomain();
+// const leaveRequests = new LeaveRequests();
+app.post('/leave-request', async (req, res, next) => {
     try {
-        const resp = await leaveRepo.create(req.body);
+        const resp = await leaveRequestDomain.requestLeave(
+            req.body,
+            req.headers
+        );
         res.json({
             success: true,
             data: resp
         });
-
-        // res.json({
-        //     success: true
-        // });
     } catch (error) {
+        let errorMessage = 'Failed to do something exceptional';
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
         res.json({
             success: false,
-            error
+            error: errorMessage
         });
     }
 });
@@ -144,6 +148,15 @@ app.get('/leave-request', async (req, res) => {
         success: true,
         data
     });
+});
+app.put('/leave-request/:id', async (req, res) => {
+    try {
+        const data = await leaveRequestDomain.getRequestLeave();
+        res.json({
+            success: true,
+            datas: data
+        });
+    } catch (error) {}
 });
 
 exports.api = functions.https.onRequest(app);

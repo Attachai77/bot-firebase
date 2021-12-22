@@ -2,7 +2,9 @@ import { LeaveRequestModel } from '../models/leaveRequests.model';
 
 export class LeaveRequests {
     async find() {
-        const results = await LeaveRequestModel.find({}).populate('user');
+        const results = await LeaveRequestModel.find({}).populate(
+            'requesterId'
+        );
         return results.map((r: any) => r.toObject());
     }
 

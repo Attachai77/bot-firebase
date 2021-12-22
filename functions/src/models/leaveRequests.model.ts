@@ -12,6 +12,12 @@ export enum LeaveDuration {
     HALF_DAY = 'halfday'
 }
 
+export enum LeaveStatus {
+    PENDING = 'PENDING',
+    APPROVED = 'APPROVED',
+    REJECTED = 'REJECTED'
+}
+
 export interface ILeaveRequest {
     _id: string;
     requestType: LeaveRequestType;
@@ -23,6 +29,7 @@ export interface ILeaveRequest {
     createdAt: string;
     requesterId: string | IUser;
     approverId: string | IUser;
+    status: LeaveStatus;
 }
 
 export const schema = new Schema<ILeaveRequest>({
@@ -30,6 +37,12 @@ export const schema = new Schema<ILeaveRequest>({
     duration: { type: String, required: true, enum: LeaveDuration },
     dateFrom: { type: String, required: true },
     dateTo: { type: String, required: false, default: '' },
+    status: {
+        type: String,
+        required: true,
+        enum: LeaveStatus,
+        default: LeaveStatus.PENDING
+    },
     note: { type: String, required: false },
     deleted: { type: Boolean, default: false },
     createdAt: { type: String, default: new Date().toISOString() },
