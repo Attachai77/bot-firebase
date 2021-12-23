@@ -14,9 +14,6 @@ try {
         options: mongooseOptions
     });
 
-    // load all repositories
-    //   import('./adapters/mongo/repositories');
-
     mongoose.connect();
 } catch (error) {
     console.error(error);

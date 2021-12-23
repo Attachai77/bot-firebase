@@ -5,6 +5,7 @@ import lineClientService from '../service/line-client';
 import { Attendances } from '../repositories/attendances.repo';
 import { AttendanceType } from '../models/attendances.model';
 import { Users } from '../repositories/users.repo';
+import replyDomain from './reply.domain';
 
 const RICH_MENU = {
     CLOCK_IN: 'richmenu-82df8e4e5034afbe6f3017ccbbc37921',
@@ -99,7 +100,7 @@ export default async (req: IPayloadEvent) => {
             await clockout(req);
             break;
         default:
-            break;
+            return replyDomain(req);
     }
 
     return;

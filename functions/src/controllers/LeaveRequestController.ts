@@ -34,8 +34,6 @@ export class LeaveRequestController {
 
     @Post('/')
     async post(@Body() body: any, @HeaderParams() headers: any) {
-        console.log({ headers });
-
         try {
             const data = await this.leaveRequestDomain.requestLeave(
                 body,

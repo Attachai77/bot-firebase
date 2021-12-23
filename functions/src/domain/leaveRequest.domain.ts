@@ -1,7 +1,9 @@
 // import * as moment from 'moment-timezone';
 import { Message } from '@line/bot-sdk/dist/types';
 import { Service } from 'typedi';
+import { v4 as uuidv4 } from 'uuid';
 import { LeaveRequests } from '../repositories/leaveRequests.repo';
+import { Users } from '../repositories/users.repo';
 import lineClientService from '../service/line-client';
 import {
     getProfileByAccessToken,
@@ -11,7 +13,10 @@ import {
 
 @Service()
 export class LeaveRequestDomain {
-    constructor(private leaveRequestRepo: LeaveRequests) {}
+    constructor(
+        private leaveRequestRepo: LeaveRequests,
+        private userRepo: Users
+    ) {}
 
     async requestLeave(body: any, headers: any) {
         const accessToken = headers.authorization.replace('Bearer ', '');
@@ -27,23 +32,40 @@ export class LeaveRequestDomain {
             throw error;
         }
 
+        let userId;
+        let profile: ILineProfile;
+        let user;
         try {
-            const profile = await getProfileByAccessToken(accessToken);
-
-            console.log({ profile });
-
-            const leaveRequests = new LeaveRequests();
-            const res = await leaveRequests.create(body);
-            const getBubble = this.requestLeaveBubbleMessage(profile, body);
-            await lineClientService.pushMessage(profile.userId, getBubble);
-            return res;
+            profile = await getProfileByAccessToken(accessToken);
+            userId = profile.userId;
+            user = await this.userRepo.findOne({
+                userId
+            });
         } catch (error) {
-            console.log(error);
+            console.error({ error });
+            throw error;
+        }
+
+        try {
+            const leaveCreated = await this.leaveRequestRepo.create({
+                ...body,
+                requesterId: user?._id,
+                leaveId: uuidv4()
+            });
+            const getBubble = this.requestLeaveBubbleMessage(
+                profile,
+                leaveCreated
+            );
+            const approverUserId = userId as string;
+            await lineClientService.pushMessage(approverUserId, getBubble);
+            return leaveCreated;
+        } catch (error) {
+            console.error({ error });
             throw error;
         }
     }
 
-    async action(leaveRequestId: string, body: string) {}
+    // async action(leaveRequestId: string, body: string) {}
 
     async getRequestLeave() {
         try {
@@ -55,7 +77,10 @@ export class LeaveRequestDomain {
         }
     }
 
-    requestLeaveBubbleMessage(profile: ILineProfile, data: any): Message[] {
+    requestLeaveBubbleMessage(
+        profile: ILineProfile,
+        leaveCreated: any
+    ): Message[] {
         return [
             {
                 type: 'flex',
@@ -200,9 +225,10 @@ export class LeaveRequestDomain {
                                 style: 'link',
                                 height: 'sm',
                                 action: {
-                                    type: 'uri',
+                                    type: 'postback',
                                     label: 'Approve',
-                                    uri: 'https://linecorp.com'
+                                    text: 'Approve',
+                                    data: `action=APPROVE_LEAVE_REQUEST&leaveId=${leaveCreated.leaveId}`
                                 }
                             },
                             {

@@ -30,6 +30,7 @@ export interface ILeaveRequest {
     requesterId: string | IUser;
     approverId: string | IUser;
     status: LeaveStatus;
+    leaveId: string;
 }
 
 export const schema = new Schema<ILeaveRequest>({
@@ -44,6 +45,7 @@ export const schema = new Schema<ILeaveRequest>({
         default: LeaveStatus.PENDING
     },
     note: { type: String, required: false },
+    leaveId: { type: String, required: true },
     deleted: { type: Boolean, default: false },
     createdAt: { type: String, default: new Date().toISOString() },
     requesterId: { type: Schema.Types.ObjectId, ref: 'User' },
