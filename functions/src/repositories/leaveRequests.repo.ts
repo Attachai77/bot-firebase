@@ -1,5 +1,7 @@
+import { Service } from 'typedi';
 import { LeaveRequestModel } from '../models/leaveRequests.model';
 
+@Service()
 export class LeaveRequests {
     async find() {
         const results = await LeaveRequestModel.find({}).populate(

@@ -1,5 +1,6 @@
 // import * as moment from 'moment-timezone';
 import { Message } from '@line/bot-sdk/dist/types';
+import { Service } from 'typedi';
 import { LeaveRequests } from '../repositories/leaveRequests.repo';
 import lineClientService from '../service/line-client';
 import {
@@ -8,9 +9,9 @@ import {
     verifyByAccessToken
 } from '../service/line.service';
 
+@Service()
 export class LeaveRequestDomain {
-    leaveRequests: any;
-    constructor() {}
+    constructor(private leaveRequestRepo: LeaveRequests) {}
 
     async requestLeave(body: any, headers: any) {
         const accessToken = headers.authorization.replace('Bearer ', '');
@@ -45,9 +46,8 @@ export class LeaveRequestDomain {
     async action(leaveRequestId: string, body: string) {}
 
     async getRequestLeave() {
-        const leaveRequests = new LeaveRequests();
         try {
-            const requests = await leaveRequests.find();
+            const requests = await this.leaveRequestRepo.find();
             return requests;
         } catch (error) {
             console.log(error);

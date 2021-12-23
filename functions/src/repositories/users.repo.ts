@@ -1,5 +1,7 @@
+import { Service } from 'typedi';
 import { UserModel } from '../models/users.model';
 
+@Service()
 export class Users {
     async find() {
         const results = await UserModel.find({});

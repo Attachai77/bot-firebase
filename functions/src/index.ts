@@ -1,8 +1,7 @@
 import './bootstrap';
 import * as functions from 'firebase-functions';
 import * as request from 'request-promise';
-import * as express from 'express';
-import * as cors from 'cors';
+// import * as cors from 'cors';
 import * as moment from 'moment-timezone';
 import { getUserByLineUserId } from './data';
 import { WebhookEventTypes } from './interface';
@@ -11,24 +10,17 @@ import unfollow from './domain/unfollow.domain';
 import push from './domain/push.doamin';
 import broadcastPushAll from './domain/broadcast.domain';
 import handleMessage from './domain/handleMessage.domain';
-// import reply from './domain/reply.domain';
 import postBack from './domain/postBack.domain';
-import { Users } from './repositories/users.repo';
-import { Attendances } from './repositories/attendances.repo';
-// import { LeaveRequests } from './repositories/leaveRequests.repo';
-import { LeaveRequestDomain } from './domain/leaveRequest.domain';
-// import { AttendanceType } from './models/attendances.model';
-// import reply from './domain/reply.domain';
-// import { LeaveDuration, LeaveRequestType } from './models/leaveRequests.model';
-// import lineClientService from './service/line-client';
+import { createExpressServer, useContainer } from 'routing-controllers';
+import { Container } from 'typedi';
+import * as path from 'path';
 
-const app = express();
-app.use(cors({ origin: true }));
+useContainer(Container);
+const app = createExpressServer({
+    controllers: [path.join(__dirname + '/controllers/*.js')]
+});
 
 moment.tz.setDefault('Asia/Bangkok');
-
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
 
 export const lineBot = functions.https.onRequest(async (req, res) => {
     //Sample a one webhook, Actually A webhook sent from the LINE may contain multiple webhook events.
@@ -90,73 +82,6 @@ export const broadcast = functions.https.onRequest((req: any, res: any) => {
         const ret = { message: 'Text not found' };
         return res.status(400).send(ret);
     }
-});
-
-//Users
-const userRepo = new Users();
-app.get('/users/:id', (req, res) => res.json('1'));
-app.post('/users', (req, res) => res.send('2'));
-app.put('/users/:id', (req, res) => res.send('3'));
-app.delete('/users/:id', (req, res) => res.send('4'));
-app.get('/users', async (req, res) => {
-    const data = await userRepo.find();
-    res.json({
-        success: true,
-        data
-    });
-});
-
-const attendancesRepo = new Attendances();
-app.get('/attendances/:id', (req, res) => res.json('1'));
-app.delete('/attendances/:id', (req, res) => res.send('4'));
-app.get('/attendances', async (req, res) => {
-    const data = await attendancesRepo.find();
-    res.json({
-        success: true,
-        data
-    });
-});
-
-const leaveRequestDomain = new LeaveRequestDomain();
-// const leaveRequests = new LeaveRequests();
-app.post('/leave-request', async (req, res, next) => {
-    try {
-        const resp = await leaveRequestDomain.requestLeave(
-            req.body,
-            req.headers
-        );
-        res.json({
-            success: true,
-            data: resp
-        });
-    } catch (error) {
-        let errorMessage = 'Failed to do something exceptional';
-        if (error instanceof Error) {
-            errorMessage = error.message;
-        }
-        res.json({
-            success: false,
-            error: errorMessage
-        });
-    }
-});
-app.get('/leave-request/:id', (req, res) => res.json('1'));
-app.delete('/leave-request/:id', (req, res) => res.send('4'));
-app.get('/leave-request', async (req, res) => {
-    const data = await attendancesRepo.find();
-    res.json({
-        success: true,
-        data
-    });
-});
-app.put('/leave-request/:id', async (req, res) => {
-    try {
-        const data = await leaveRequestDomain.getRequestLeave();
-        res.json({
-            success: true,
-            datas: data
-        });
-    } catch (error) {}
 });
 
 exports.api = functions.https.onRequest(app);
