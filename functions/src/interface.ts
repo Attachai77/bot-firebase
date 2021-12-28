@@ -20,7 +20,9 @@ export enum SourceType {
 
 export enum PostBackAction {
     CLOCK_IN = 'clockin',
-    CLOCK_OUT = 'clockout'
+    CLOCK_OUT = 'clockout',
+    APPROVE_LEAVE_REQUEST = 'approve_leave_request',
+    REJECT_LEAVE_REQUEST = 'reject_leave_request'
 }
 
 export interface IPayloadEvent {

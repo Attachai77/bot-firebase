@@ -9,6 +9,7 @@ export interface IUser {
     deleted: boolean;
     email: string;
     imgUrl?: string;
+    activated: boolean;
 }
 
 // 2. Create a Schema corresponding to the document interface.
@@ -17,6 +18,7 @@ export const schema = new Schema<IUser>({
     name: { type: String, required: true },
     active: { type: Boolean, default: true },
     deleted: { type: Boolean, default: false },
+    activated: { type: Boolean, default: false },
     email: String,
     imgUrl: String
 });

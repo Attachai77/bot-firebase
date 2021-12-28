@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { UserModel } from '../models/users.model';
+import { IUser, UserModel } from '../models/users.model';
 
 @Service()
 export class Users {
@@ -13,9 +13,9 @@ export class Users {
         return result?.toObject();
     }
 
-    async findOne(filter: any = {}) {
+    async findOne(filter: any = {}): Promise<IUser> {
         const result = await UserModel.findOne(filter);
-        return result?.toObject();
+        return result?.toObject() as IUser;
     }
 
     async create(body: any) {

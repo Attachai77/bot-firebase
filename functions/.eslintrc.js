@@ -44,6 +44,7 @@ module.exports = {
     "require-jsdoc": "off",
     "no-invalid-this": "off",
     "camelcase": "off",
-    "new-cap": "off"
+    "new-cap": "off",
+    "operator-linebreak": "off"
   },
 };

@@ -45,4 +45,19 @@ export class UserController {
     remove(@Param('id') id: number) {
         return 'Removing user...';
     }
+
+    @Get('/users/:userId/activate')
+    async activateCode(@Param('userId') userId: string) {
+        try {
+            await this.userDomain.activateCode(userId);
+            return {
+                success: true
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error
+            };
+        }
+    }
 }

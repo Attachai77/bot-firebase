@@ -2,6 +2,8 @@
 import { Message } from '@line/bot-sdk/dist/types';
 import { Service } from 'typedi';
 import { v4 as uuidv4 } from 'uuid';
+import { IPayloadEvent } from '../interface';
+import { LeaveStatus } from '../models/leaveRequests.model';
 import { LeaveRequests } from '../repositories/leaveRequests.repo';
 import { Users } from '../repositories/users.repo';
 import lineClientService from '../service/line-client';
@@ -65,7 +67,89 @@ export class LeaveRequestDomain {
         }
     }
 
-    // async action(leaveRequestId: string, body: string) {}
+    async approve(leaveRequestId: string, body: IPayloadEvent) {
+        const data = body.events[0];
+        let leaveData;
+        let approverData;
+
+        try {
+            approverData = await this.userRepo.findOne({
+                userId: data.source.userId
+            });
+        } catch (error) {
+            console.error('find approver data error');
+            throw error;
+        }
+
+        try {
+            leaveData = await this.leaveRequestRepo.update(
+                {
+                    status: LeaveStatus.APPROVED,
+                    approverId: approverData?._id
+                },
+                {
+                    leaveId: leaveRequestId
+                }
+            );
+        } catch (error) {
+            console.error('approve leave error');
+            throw error;
+        }
+
+        const approvedBubbleMessage = this.approvedBubbleMessage(leaveData);
+        const requesterId = leaveData?.requesterId as string;
+        try {
+            await lineClientService.pushMessage(
+                requesterId,
+                approvedBubbleMessage
+            );
+        } catch (error) {
+            console.error('pushMessage error');
+            throw error;
+        }
+    }
+
+    async reject(leaveRequestId: string, body: IPayloadEvent) {
+        const data = body.events[0];
+        let leaveData;
+        let approverData;
+
+        try {
+            approverData = await this.userRepo.findOne({
+                userId: data.source.userId
+            });
+        } catch (error) {
+            console.error('find approver data error');
+            throw error;
+        }
+
+        try {
+            leaveData = await this.leaveRequestRepo.update(
+                {
+                    status: LeaveStatus.REJECTED,
+                    approverId: approverData?._id
+                },
+                {
+                    leaveId: leaveRequestId
+                }
+            );
+        } catch (error) {
+            console.error('reject leave error');
+            throw error;
+        }
+
+        const approvedBubbleMessage = this.approvedBubbleMessage(leaveData);
+        const requesterId = leaveData?.requesterId as string;
+        try {
+            await lineClientService.pushMessage(
+                requesterId,
+                approvedBubbleMessage
+            );
+        } catch (error) {
+            console.error('pushMessage error');
+            throw error;
+        }
+    }
 
     async getRequestLeave() {
         try {
@@ -77,7 +161,7 @@ export class LeaveRequestDomain {
         }
     }
 
-    requestLeaveBubbleMessage(
+    private requestLeaveBubbleMessage(
         profile: ILineProfile,
         leaveCreated: any
     ): Message[] {
@@ -228,7 +312,7 @@ export class LeaveRequestDomain {
                                     type: 'postback',
                                     label: 'Approve',
                                     text: 'Approve',
-                                    data: `action=APPROVE_LEAVE_REQUEST&leaveId=${leaveCreated.leaveId}`
+                                    data: `action=approve_leave_request&leaveId=${leaveCreated.leaveId}`
                                 }
                             },
                             {
@@ -236,9 +320,10 @@ export class LeaveRequestDomain {
                                 style: 'link',
                                 height: 'sm',
                                 action: {
-                                    type: 'uri',
+                                    type: 'postback',
                                     label: 'Reject',
-                                    uri: 'https://linecorp.com'
+                                    text: 'Approve',
+                                    data: `action=reject_leave_request&leaveId=${leaveCreated.leaveId}`
                                 }
                             },
                             {
@@ -251,5 +336,86 @@ export class LeaveRequestDomain {
                 }
             }
         ];
+    }
+
+    private approvedBubbleMessage(leaveData: any): Message | Message[] {
+        const text =
+            leaveData.status === LeaveStatus.APPROVED
+                ? 'Your leave has been approved'
+                : 'Your leave has been rejected';
+
+        const status =
+            leaveData.status === LeaveStatus.APPROVED ? 'Approved' : 'Rejected';
+
+        return {
+            type: 'flex',
+            altText: text,
+            contents: {
+                type: 'bubble',
+                size: 'micro',
+                header: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                        {
+                            type: 'text',
+                            text: status,
+                            color: '#ffffff',
+                            align: 'start',
+                            size: 'md',
+                            gravity: 'center'
+                        }
+                    ],
+                    backgroundColor: '#27ACB2',
+                    paddingTop: '19px',
+                    paddingAll: '12px',
+                    paddingBottom: '16px'
+                },
+                body: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                        {
+                            type: 'box',
+                            layout: 'horizontal',
+                            contents: [
+                                {
+                                    type: 'text',
+                                    text: text,
+                                    color: '#8C8C8C',
+                                    size: 'sm',
+                                    wrap: true
+                                }
+                            ],
+                            flex: 1
+                        }
+                    ],
+                    spacing: 'md',
+                    paddingAll: '12px'
+                },
+                footer: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                        {
+                            type: 'text',
+                            text: 'view detail',
+                            size: 'xxs',
+                            color: '#aaaaaa',
+                            align: 'end'
+                        }
+                    ],
+                    spacing: 'none',
+                    borderWidth: 'light',
+                    borderColor: '#dddddd',
+                    cornerRadius: 'none'
+                },
+                styles: {
+                    footer: {
+                        separator: false
+                    }
+                }
+            }
+        };
     }
 }
