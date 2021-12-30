@@ -21,10 +21,13 @@ export class LeaveRequestController {
     @Get('/')
     async getAll(@Req() request: any, @Res() response: any) {
         const data = await this.leaveRequestDomain.getRequestLeave();
-        return {
+
+        console.log({ data: JSON.stringify(data) });
+
+        return response.json({
             success: true,
             data
-        };
+        });
     }
 
     @Get('/:id')

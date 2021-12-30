@@ -71,13 +71,14 @@ export class LeaveRequestDomain {
         const data = body.events[0];
         let leaveData;
         let approverData;
+        let requesterDate;
 
         try {
             approverData = await this.userRepo.findOne({
                 userId: data.source.userId
             });
         } catch (error) {
-            console.error('find approver data error');
+            console.error('find approver data error', error);
             throw error;
         }
 
@@ -92,19 +93,30 @@ export class LeaveRequestDomain {
                 }
             );
         } catch (error) {
-            console.error('approve leave error');
+            console.error('approve leave error', error);
             throw error;
         }
 
-        const approvedBubbleMessage = this.approvedBubbleMessage(leaveData);
         const requesterId = leaveData?.requesterId as string;
         try {
+            requesterDate = await this.userRepo.findById(requesterId);
+        } catch (error) {
+            console.error('get requester error', error);
+            throw error;
+        }
+
+        const approvedBubbleMessage = this.approvedBubbleMessage(
+            leaveData,
+            LeaveStatus.APPROVED
+        );
+        const requesterUserId = requesterDate?.userId as string;
+        try {
             await lineClientService.pushMessage(
-                requesterId,
+                requesterUserId,
                 approvedBubbleMessage
             );
         } catch (error) {
-            console.error('pushMessage error');
+            console.error('pushMessage error', error);
             throw error;
         }
     }
@@ -113,6 +125,7 @@ export class LeaveRequestDomain {
         const data = body.events[0];
         let leaveData;
         let approverData;
+        let requesterDate;
 
         try {
             approverData = await this.userRepo.findOne({
@@ -138,11 +151,22 @@ export class LeaveRequestDomain {
             throw error;
         }
 
-        const approvedBubbleMessage = this.approvedBubbleMessage(leaveData);
         const requesterId = leaveData?.requesterId as string;
         try {
+            requesterDate = await this.userRepo.findById(requesterId);
+        } catch (error) {
+            console.error('get requester error', error);
+            throw error;
+        }
+
+        const approvedBubbleMessage = this.approvedBubbleMessage(
+            leaveData,
+            LeaveStatus.REJECTED
+        );
+        const requesterUserId = requesterDate?.userId as string;
+        try {
             await lineClientService.pushMessage(
-                requesterId,
+                requesterUserId,
                 approvedBubbleMessage
             );
         } catch (error) {
@@ -322,7 +346,7 @@ export class LeaveRequestDomain {
                                 action: {
                                     type: 'postback',
                                     label: 'Reject',
-                                    text: 'Approve',
+                                    text: 'Reject',
                                     data: `action=reject_leave_request&leaveId=${leaveCreated.leaveId}`
                                 }
                             },
@@ -338,14 +362,20 @@ export class LeaveRequestDomain {
         ];
     }
 
-    private approvedBubbleMessage(leaveData: any): Message | Message[] {
+    private approvedBubbleMessage(
+        leaveData: any,
+        _status: LeaveStatus
+    ): Message | Message[] {
         const text =
-            leaveData.status === LeaveStatus.APPROVED
+            _status === LeaveStatus.APPROVED
                 ? 'Your leave has been approved'
                 : 'Your leave has been rejected';
 
         const status =
-            leaveData.status === LeaveStatus.APPROVED ? 'Approved' : 'Rejected';
+            _status === LeaveStatus.APPROVED ? 'Approved' : 'Rejected';
+
+        const backgroundColor =
+            _status === LeaveStatus.APPROVED ? '#27ACB2' : '#FF8469';
 
         return {
             type: 'flex',
@@ -366,7 +396,7 @@ export class LeaveRequestDomain {
                             gravity: 'center'
                         }
                     ],
-                    backgroundColor: '#27ACB2',
+                    backgroundColor,
                     paddingTop: '19px',
                     paddingAll: '12px',
                     paddingBottom: '16px'

@@ -4,10 +4,10 @@ import { LeaveRequestModel } from '../models/leaveRequests.model';
 @Service()
 export class LeaveRequests {
     async find() {
-        const results = await LeaveRequestModel.find({}).populate(
-            'requesterId',
-            'approverId'
-        );
+        const results = await LeaveRequestModel.find({})
+            .populate('requesterId')
+            .populate('approverId');
+
         return results.map((r: any) => r.toObject());
     }
 
