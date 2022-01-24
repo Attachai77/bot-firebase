@@ -22,8 +22,6 @@ export class LeaveRequestController {
     async getAll(@Req() request: any, @Res() response: any) {
         const data = await this.leaveRequestDomain.getRequestLeave();
 
-        console.log({ data: JSON.stringify(data) });
-
         return response.json({
             success: true,
             data
@@ -31,8 +29,13 @@ export class LeaveRequestController {
     }
 
     @Get('/:id')
-    getOne(@Param('id') id: number) {
-        return 'This action returns user #' + id;
+    async getOne(@Param('id') id: string, @Res() response: any) {
+        const data = await this.leaveRequestDomain.getById(id);
+
+        return response.json({
+            success: true,
+            data
+        });
     }
 
     @Post('/')

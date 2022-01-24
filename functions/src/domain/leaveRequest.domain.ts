@@ -185,6 +185,16 @@ export class LeaveRequestDomain {
         }
     }
 
+    async getById(id: string) {
+        try {
+            const leave = await this.leaveRequestRepo.findById(id);
+            return leave;
+        } catch (error) {
+            console.log('leave domain getById error', error);
+            throw error;
+        }
+    }
+
     private requestLeaveBubbleMessage(
         profile: ILineProfile,
         leaveCreated: any
@@ -312,7 +322,7 @@ export class LeaveRequestDomain {
                                             },
                                             {
                                                 type: 'text',
-                                                text: 'ไม่วบาย เป็นไข้ ปวดหัว ปวดใจ😔',
+                                                text: leaveCreated.note ?? '-',
                                                 size: 'sm',
                                                 color: '#666666',
                                                 flex: 5
@@ -366,6 +376,7 @@ export class LeaveRequestDomain {
         leaveData: any,
         _status: LeaveStatus
     ): Message | Message[] {
+        const leaveId = leaveData._id.toString();
         const text =
             _status === LeaveStatus.APPROVED
                 ? 'Your leave has been approved'
@@ -432,7 +443,12 @@ export class LeaveRequestDomain {
                             text: 'view detail',
                             size: 'xxs',
                             color: '#aaaaaa',
-                            align: 'end'
+                            align: 'end',
+                            action: {
+                                type: 'uri',
+                                label: 'action',
+                                uri: `https://liff.line.me/1656744437-pk2YwlRQ/${leaveId}`
+                            }
                         }
                     ],
                     spacing: 'none',

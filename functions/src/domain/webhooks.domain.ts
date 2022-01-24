@@ -19,7 +19,8 @@ export class WebHooksDomain {
             case WebhookEventTypes.UNFOLLOW:
                 return unfollow(body);
             case WebhookEventTypes.MESSAGE:
-                return reply(body);
+                // return reply(body);
+                break;
             case WebhookEventTypes.POST_BACK:
                 return await postBack(body);
             default:

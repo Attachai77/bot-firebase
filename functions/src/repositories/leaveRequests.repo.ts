@@ -12,7 +12,9 @@ export class LeaveRequests {
     }
 
     async findById(_id: string) {
-        const result = await LeaveRequestModel.findById(_id);
+        const result = await LeaveRequestModel.findById(_id)
+            .populate('requesterId')
+            .populate('approverId');
         return result?.toObject();
     }
 
